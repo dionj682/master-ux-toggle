@@ -799,7 +799,7 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
 }
 const sbCfg = window.MASTER_UX_SUPABASE || {};
-const supabase = (window.supabase && sbCfg.url && !String(sbCfg.url).includes("PLACEHOLDER"))
+const sb = (window.supabase && sbCfg.url && !String(sbCfg.url).includes("PLACEHOLDER"))
   ? window.supabase.createClient(sbCfg.url, sbCfg.anonKey)
   : null;
 let itemState = {};
@@ -811,7 +811,7 @@ async function persistRow(id, patch) {
   const it = ITEMS.find(x => x.id === id);
   const st = { ...getItemState(id), ...patch };
   itemState[id] = st;
-  if (!supabase || !it) return;
+  if (!sb || !it) return;
   const person = (it.people && it.people[0]) || "";
   const row = {
     id,
@@ -823,7 +823,7 @@ async function persistRow(id, patch) {
     note: st.note || "",
     updated_at: new Date().toISOString()
   };
-  const { error } = await supabase.from("todo_items").upsert(row, { onConflict: "id" });
+  const { error } = await sb.from("todo_items").upsert(row, { onConflict: "id" });
   if (error) console.error("supabase upsert", error);
 }
 function setItemDone(id, done) {
@@ -835,16 +835,16 @@ function setItemNote(id, note) {
   persistRow(id, { note: String(note || "") });
 }
 async function loadRemoteState() {
-  if (!supabase) return;
-  const { data, error } = await supabase.from("todo_items").select("id,done,note");
+  if (!sb) return;
+  const { data, error } = await sb.from("todo_items").select("id,done,note");
   if (error) { console.error("supabase select", error); return; }
   for (const row of (data || [])) {
     itemState[row.id] = { done: !!row.done, note: row.note || "" };
   }
 }
 async function seedIfEmpty() {
-  if (!supabase) return;
-  const { count, error } = await supabase.from("todo_items").select("id", { count: "exact", head: true });
+  if (!sb) return;
+  const { count, error } = await sb.from("todo_items").select("id", { count: "exact", head: true });
   if (error) { console.error("supabase count", error); return; }
   if (count && count > 0) return;
   const rows = ITEMS.map(it => ({
@@ -857,7 +857,7 @@ async function seedIfEmpty() {
     note: "",
     updated_at: new Date().toISOString()
   }));
-  const { error: upErr } = await supabase.from("todo_items").upsert(rows, { onConflict: "id" });
+  const { error: upErr } = await sb.from("todo_items").upsert(rows, { onConflict: "id" });
   if (upErr) console.error("supabase seed", upErr);
 }
 function syncItemDom(id) {
