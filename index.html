@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>To Do Master — UX Toggle</title>
+<style>
+  :root, html[data-theme="light"] {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --line: #e2e5eb;
+    --text: #1a1d24;
+    --muted: #5c6573;
+    --accent: #2b6fd6;
+    --good: #1a9a5c;
+    --warn: #b8860b;
+    --hot: #c9432e;
+    --rail-bg: #eef0f4;
+    --toggle-active: #dce8fa;
+    --next-border: #b7c9e8;
+    --next-bg: #f3f7fd;
+    --pill-bg: #e3eefc;
+    --pill-now-bg: #fde8e4;
+    --sidebar-w: 360px;
+  }
+  html[data-theme="dark"] {
+    --bg: #0f1115;
+    --card: #181b22;
+    --line: #2a2f3a;
+    --text: #e8eaed;
+    --muted: #9aa3b2;
+    --accent: #5b9dff;
+    --good: #3dd68c;
+    --warn: #f5c542;
+    --hot: #ff7a66;
+    --rail-bg: #14171e;
+    --toggle-active: #243049;
+    --next-border: #31405c;
+    --next-bg: #181b22;
+    --pill-bg: #1e2a40;
+    --pill-now-bg: #3a2220;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  .shell { display: flex; align-items: flex-start; min-height: 100vh;
+    width: 100%;
+  }
+  .main {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 24px 28px;
+    padding-right: calc(var(--sidebar-w) + 28px);
+  }
+  .top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .brand { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 22px; margin: 4px 0 0; font-weight: 700; }
+  .sub { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toggles {
+    display: inline-flex; background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px; gap: 2px;
+  }
+  .toggles button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px;
+    border-radius: 999px; cursor: pointer;
+  }
+  .toggles button.active { background: var(--toggle-active); color: var(--text); }
+  .toggles button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .theme-btn {
+    appearance: none; border: 1px solid var(--line); background: var(--card);
+    color: var(--muted); font: inherit; font-size: 12px; font-weight: 600;
+    padding: 8px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+  .theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .group {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 12px;
+  }
+  .group-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px; gap: 8px;
+  }
+  .group-title {
+    margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  .group-meta { font-size: 12px; color: var(--muted); }
+  /* Urgency view: clear bucket separation */
+  .group.group-urgency {
+    padding-top: 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .group.group-urgency .group-head {
+    margin: 0 -16px 12px;
+    padding: 11px 16px;
+    background: var(--rail-bg);
+    border-bottom: 1px solid var(--line);
+    border-radius: 11px 11px 0 0;
+  }
+  .group.group-urgency .group-title { font-weight: 700; letter-spacing: 0.14em; }
+  .group.group-urgency.u1 { border-left: 3px solid var(--hot); }
+  .group.group-urgency.u1 .group-title { color: var(--hot); }
+  .group.group-urgency.u2 { border-left: 3px solid var(--warn); }
+  .group.group-urgency.u2 .group-title { color: var(--warn); }
+  .group.group-urgency.u3 { border-left: 3px solid var(--muted); }
+  .group.group-urgency.u3 .group-title { color: var(--muted); }
+  .item {
+    display: grid; grid-template-columns: 22px 72px 1fr; gap: 10px;
+    padding: 16px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.4;
+    align-items: start;
+  }
+  .item:first-of-type { border-top: none; padding-top: 4px; }
+  .item.done { opacity: 0.55; }
+  .item.done strong { text-decoration: line-through; color: var(--muted); }
+  .item.done .why { opacity: 0.9; }
+  .check {
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 3px; cursor: pointer;
+  }
+  .check input {
+    width: 15px; height: 15px; margin: 0; cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .item-note {
+    display: block; width: 100%; margin-top: 6px;
+    border: 1px solid transparent; border-radius: 6px;
+    background: transparent; color: var(--text);
+    font: inherit; font-size: 12px; line-height: 1.35;
+    padding: 4px 8px;
+  }
+  .item-note::placeholder { color: var(--muted); opacity: 0.75; }
+  .item-note:hover { border-color: var(--line); }
+  .item-note:focus {
+    outline: none; border-color: var(--accent);
+    background: var(--bg);
+  }
+  .badge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--muted); padding-top: 2px;
+  }
+  .badge.u1 { color: var(--hot); }
+  .badge.u2 { color: var(--warn); }
+  .badge.u3 { color: var(--good); }
+  .item strong { font-weight: 650; }
+  .item .why { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .foot { margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+  code { font-size: 11px; color: var(--accent); }
+
+  .meet-rail {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--rail-bg);
+    border-left: 1px solid var(--line);
+    padding: 20px 16px 24px;
+    overflow-y: auto; z-index: 20;
+  }
+  .meet-rail .rail-brand {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 4px;
+  }
+  .meet-rail h2 { margin: 0 0 14px; font-size: 15px; font-weight: 700; }
+  .meet-rail .rail-date { font-size: 12px; color: var(--muted); margin: -8px 0 14px; }
+  .meet-empty {
+    border: 1px dashed var(--line); border-radius: 10px; padding: 18px 14px;
+    color: var(--muted); font-size: 13px; line-height: 1.45; text-align: center;
+  }
+  .meet-next {
+    background: var(--next-bg); border: 1px solid var(--next-border);
+    border-radius: 10px; padding: 12px; margin-bottom: 14px;
+  }
+  .meet-next .pill {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); background: var(--pill-bg);
+    border-radius: 999px; padding: 3px 8px; margin-bottom: 8px;
+  }
+  .meet-next .pill.now { color: var(--hot); background: var(--pill-now-bg); }
+  .meet-next .time, .meet-row .time { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .meet-next .title { font-size: 14px; font-weight: 650; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meet-next .meta, .meet-row .meta { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  .meet-next .countdown { font-size: 12px; color: var(--accent); margin-top: 8px; font-weight: 600; }
+  .meet-list .label {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin: 4px 0 8px; font-weight: 600;
+  }
+  .meet-row { padding: 10px 0; border-top: 1px solid var(--line); }
+  .meet-list .label + .meet-row { border-top: none; }
+  .meet-row .title { font-size: 13px; font-weight: 600; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meet-row.past { opacity: 0.45; }
+  .meet-row.past .title { font-weight: 500; }
+
+  @media (max-width: 900px) {
+    .main { padding-right: 24px; max-width: none; margin: 0; }
+    .meet-rail {
+      position: static; width: auto; border-left: 0;
+      border-top: 1px solid var(--line); max-height: none;
+    }
+    .shell { flex-direction: column; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Filled after project create — free-tier anon key is safe to embed (RLS gates writes).
+window.MASTER_UX_SUPABASE = {
+  url: "SUPABASE_URL_PLACEHOLDER",
+  anonKey: "SUPABASE_ANON_KEY_PLACEHOLDER"
+};
+</script>
+</head>
+<body>
+  <div class="shell">
+    <div class="main">
+      <div class="top">
+        <div>
+          <div class="brand">FY27 · Central Command · Live</div>
+          <h1>To Do Master — UX Toggle</h1>
+          <div class="sub">Same Master list. Switch person / account / urgency. Lola syncs when Master changes or you report status. You don’t edit the HTML.</div>
+        </div>
+        <div class="controls">
+          <div class="toggles" role="tablist" aria-label="Master views">
+            <button type="button" class="active" data-view="person" role="tab" aria-selected="true">Person</button>
+            <button type="button" data-view="account" role="tab" aria-selected="false">Account</button>
+            <button type="button" data-view="urgency" role="tab" aria-selected="false">Urgency</button>
+          </div>
+          <button type="button" class="theme-btn" id="theme-btn" aria-label="Toggle light and dark theme">Dark</button>
+        </div>
+      </div>
+
+      <div id="view-person" class="panel active" role="tabpanel"></div>
+      <div id="view-account" class="panel" role="tabpanel" hidden></div>
+      <div id="view-urgency" class="panel" role="tabpanel" hidden></div>
+
+      <p class="foot">Production. Working twin: <code>/workspace/cos-os/central-command/master-ux-toggle.html</code> · theme in this browser; done + notes sync via Supabase across devices.</p>
+    </div>
+
+    <aside class="meet-rail" aria-label="Today’s meetings">
+      <div class="rail-brand">Today</div>
+      <h2>Meetings</h2>
+      <div class="rail-date" id="meet-date"></div>
+      <div id="meet-rail-body"></div>
+    </aside>
+  </div>
+
+<script>
+/** urgency: 1 = today/hot, 2 = this week, 3 = watch/waiting */
+const ITEMS = [
+  // —— Micron (full open set from Master 2026-09-25) ——
+  {
+    id: "jon-day",
+    title: "Jonathan day — Micron prep + action sheet",
+    why: "Spending the day with him; keep Micron AIs and his asks in one place.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Meeting day"
+  },
+  {
+    id: "micron-program-mgmt",
+    title: "Micron / Program Mgmt — walk Jonathan’s asks (owner + timeline)",
+    why: "From QBR notes: options, what needs doing, who owns it, by when.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Do now"
+  },
+  {
+    id: "jackie-po",
+    title: "Jackie — watch PO path (quotes → PO to WWT → booking; Oct 1)",
+    why: "Watch only. No Jared send unless she goes quiet.",
+    people: ["Jackie"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Waiting"
+  },
+  {
+    id: "micron-hanan",
+    title: "Micron / Hanan turnaround — schedule internal leadership meet",
+    why: "Leadership path on the Micron turnaround.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "micron-sfdc",
+    title: "Micron / SFDC — add true forward opportunity",
+    why: "Pipeline hygiene; forward opp must exist in SFDC.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "micron-claude-hooks",
+    title: "Micron / Claude Inference Hooks — review with Micron team",
+    why: "From Endpoint AI POV Sync 9/15.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Follow-up"
+  },
+  {
+    id: "micron-overlays-ps360",
+    title: "Overlays — Christian PS Engineering / PS360 for Jonathan",
+    why: "Micron overlay ask tied to Jonathan.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-overlays-splx",
+    title: "Overlays — SPLX thread (Jared + Kirkman) for Jonathan",
+    why: "Micron overlay path.",
+    people: ["Jonathan", "Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-ai-broker-notes",
+    title: "Delegate / SE — AI Broker meeting notes to Jonathan (Harlow pushback)",
+    why: "Get notes to Jonathan.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-app-shield-pm",
+    title: "Delegate / overlays — ZPA App Shield PM meeting for Jonathan/Micron",
+    why: "Overlay / PM path.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-ai-guard-notes",
+    title: "Delegate / SE — Micron AI Guard Roadmap notes to Jonathan",
+    why: "Notes handoff.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-risk-mgmt",
+    title: "Delegate / SE — Micron Risk Mgmt 90-min (Sam/Nick + Jonathan)",
+    why: "Scrub Sam/JD 1:1 → Leo.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-csm-lori",
+    title: "Delegate / overlays-CS — CSM internal call with Lori for Jonathan needs",
+    why: "CSM alignment on Jonathan’s Micron needs.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Delegate"
+  },
+  {
+    id: "micron-pra-dlp-beta",
+    title: "Delegate / overlays — PRA DLP Beta invite end-Nov (Mittun/Jonathan/Shekhar/Ran)",
+    why: "Beta invite path.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Watch"
+  },
+  {
+    id: "micron-yaash-qbr",
+    title: "Yaash — QBR availability → team confirm → lock with Micron",
+    why: "Pull availability, share, lock day/time with Micron.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "micron-nick-coffee",
+    title: "Micron / Nick coffee follow-ups — Float? Loafers; ZIA AI block; QBR exec prep / wow-Hanan",
+    why: "From Fri Nick + Yiannis sit.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Follow-up"
+  },
+  {
+    id: "micron-flex-map",
+    title: "Micron / Flex monetary commit — map 18–24mo interest + test plan",
+    why: "Close May/Jun 2027 ahead of Jan 2028 renewal.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Strategic"
+  },
+  {
+    id: "micron-flex-structure",
+    title: "Micron / Flex monetary commit — structure commit $ + business case",
+    why: "Couple million+ beyond current spend; close May/Jun 2027.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Strategic"
+  },
+  {
+    id: "micron-kirkman",
+    title: "Micron / Boise / Kirkman — inform and neutralize only until AI closes",
+    why: "No champion framing.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Watch"
+  },
+  {
+    id: "micron-robin-dan",
+    title: "Micron / WWT / Robin Card — next = Dan Eichhorn early-renewal set-time",
+    why: "Partner early when WWT helps.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Follow-up"
+  },
+  {
+    id: "micron-nick-ward",
+    title: "Micron / Boise / Nick Ward — commitment to 4-hour executive briefing",
+    why: "Get the commit.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "micron-program-leader",
+    title: "Micron / Program Leader meeting — Jonathan, Lori, Christian, Ran",
+    why: "Drive to value.",
+    people: ["Jonathan"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Meeting"
+  },
+  {
+    id: "micron-agentic-soc",
+    title: "Micron / Agentic SoC / Log cost reduction (~30%) — Russ Syphert eval path",
+    why: "Andrew Colyer AE + Jeff Spencer SE; path from Shekhar.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Strategic"
+  },
+  {
+    id: "micron-ebc-prep",
+    title: "Micron / EBC prep call — before Boise executive briefing thread",
+    why: "Prep before the briefing.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "micron-platform-hanan",
+    title: "Micron / Platform buy-in — Hanan products; Blake + Kirkman averse; EBC Boise option",
+    why: "QBR exec wow up front (from Nick coffee).",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Strategic"
+  },
+  {
+    id: "micron-ai-strategy",
+    title: "Micron / AI strategy catch-up — keep Boise conversations sharp",
+    why: "Ongoing sharpness.",
+    people: ["Jonathan", "Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Watch"
+  },
+  {
+    id: "micron-exec-briefing",
+    title: "Micron / Executive Briefing — Platform Whiteboard Session heavy on AI (3–4hr)",
+    why: "Boise exec briefing shape.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Meeting"
+  },
+  {
+    id: "micron-wait-jackie",
+    title: "Waiting: Jackie — review quotes + cut PO to WWT",
+    why: "Then WWT → Jared → killers. Not waiting on Jared to send.",
+    people: ["Jackie"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Waiting"
+  },
+  {
+    id: "micron-wait-melanie",
+    title: "Waiting: Melanie EA — half-day exec briefing availability",
+    why: "Hanan / Blake / Nick / Jonathan / Kirkman.",
+    people: ["Jonathan", "Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "micron-wait-ran",
+    title: "Waiting: Ran Singh — Yaash Cloud NSS feed license ask (charge vs comp)",
+    why: "License path.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Waiting"
+  },
+  {
+    id: "micron-wait-ganesha",
+    title: "Waiting: Ganesha — product/licensing/structure on Jackie counter",
+    why: "Counter structure.",
+    people: ["Jackie", "Jared"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "micron-pm-title",
+    title: "Micron / Program Mgr — check Uber PS PM title vs Christian",
+    why: "Title compare from Uber PS PM.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Watch"
+  },
+  {
+    id: "boise-qbr-invites",
+    title: "Boise early-Oct QBR invite list — Yash, Expedia Cyber Sr Dir, Yiannis, Lori when dates lock",
+    why: "Standing invite list when Boise/QBR dates lock.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Watch"
+  },
+
+  // —— Costco ——
+  {
+    id: "adrian-rfp",
+    title: "Adrian — send RFP docs + AI BV analysis",
+    why: "Post-lunch follow-up; still open. Draft ready on Master.",
+    people: ["Adrian"],
+    account: "Costco",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "wwt-paul",
+    title: "WWT Paul Saline — call + combined ZS/WWT meet; Rudiak email path",
+    why: "Downselection feedback + move forward with testing; finish testing ASAP.",
+    people: ["Paul Saline"],
+    account: "Costco",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "paul-sit",
+    title: "Paul Saline — set up meeting with Robert Tabb and Julianne Spiegel",
+    why: "Testing, costs, funding, resourcing. Julianne has WWT funding knowledge. Jared + David Kramer in the room.",
+    people: ["Paul Saline"],
+    account: "Costco",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "ray-usecases",
+    title: "Ray Flores — clarify Costco real testing use cases (~1 week)",
+    why: "Requirements ≠ use cases. He shares real test cases back.",
+    people: ["Ray Flores"],
+    account: "Costco",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "ray-tech",
+    title: "Ray Flores — tech setup that can start now (no use-case dependency)",
+    why: "Parallel track so you’re not idle when use cases land.",
+    people: ["Ray Flores"],
+    account: "Costco",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "costco-leadership",
+    title: "Costco / Leadership brainstorm follow-through — still open",
+    why: "No outcome on board; rebook or capture plays/owners (DK / Nick Newby ± Schumm).",
+    people: ["Jared"],
+    account: "Costco",
+    urgency: 2,
+    kind: "Follow-up"
+  },
+  {
+    id: "costco-renewal",
+    title: "Costco / Renewal 3/30/2027 — start ≥6mo strategy (now)",
+    why: "Renewal clock.",
+    people: ["Jared"],
+    account: "Costco",
+    urgency: 3,
+    kind: "Strategic"
+  },
+  {
+    id: "costco-wait-ray",
+    title: "Waiting: Ray — confirm Erik Rudiak status + other-vendors meaning",
+    why: "Still need to confirm.",
+    people: ["Ray Flores"],
+    account: "Costco",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "costco-wait-iris",
+    title: "Waiting: Iris — after differentiator test plan lands",
+    why: "Gated on SE differentiator plan.",
+    people: ["Jared"],
+    account: "Costco",
+    urgency: 3,
+    kind: "Waiting"
+  },
+  {
+    id: "costco-wait-bhanu",
+    title: "Waiting: Bhanu — Justin/WWT email review + Dallas/Anthony Nelson offer",
+    why: "Partner email path.",
+    people: ["Jared"],
+    account: "Costco",
+    urgency: 3,
+    kind: "Waiting"
+  },
+
+  // —— Uber ——
+  {
+    id: "uber-edlp",
+    title: "Uber — build EDLP + ZTC proposal (combined motion)",
+    why: "Open revenue lever. Existing footprint/SKUs/pricing + ZTC SKUs into same proposal.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "uber-jincy",
+    title: "Uber — reach out to Jincy (Philip Martin CoS) for prep call",
+    why: "Before meeting with Philip Martin (CISO).",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Do now"
+  },
+  {
+    id: "uber-shane",
+    title: "Uber — talk with Shane Larkin on specialist/support options for ZTC",
+    why: "Realistic capacity to accelerate ZTC.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Do now"
+  },
+  {
+    id: "uber-winfred-ai-names",
+    title: "Uber — before Oct 13 confirm with Winfred the two AI stakeholder names/titles",
+    why: "~Sean / ~Wu-Woo; responsibilities.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "uber-winfred-ai-owners",
+    title: "Uber — ask Winfred: primary/secondary go-to for AI security with Ming leaving",
+    why: "Ownership clarity.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "uber-build-buy-map",
+    title: "Uber — begin Build→Buy / Platform Opportunity Map with Winfred",
+    why: "Buy now · Build→buy transition · Leave alone.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 2,
+    kind: "Do now"
+  },
+  {
+    id: "uber-edlp-jd",
+    title: "Uber / EDLP — JD build proposal; 2 ERs + PM ownership + committed dates",
+    why: "Quantify full-footprint revenue for PM; then procurement timing.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "uber-ztc-jd",
+    title: "Uber / ZTC — reconnect Winfred with capacity proposal; SKUs/pricing into proposal",
+    why: "Waiting Winfred→Geo on Dec tech vs bandwidth.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "uber-endpoint-quote",
+    title: "Uber — build updated endpoint DLP quote",
+    why: "Quote refresh.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Revenue"
+  },
+  {
+    id: "uber-group-followup",
+    title: "Uber — send Zscaler group follow-up email (recap + action items)",
+    why: "EDLP ER blockers + Matan roadmap thread.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 1,
+    kind: "Do now"
+  },
+  {
+    id: "uber-wait-winfred-geo",
+    title: "Waiting: Winfred→Geo — Dec ZTC testing = tech dependency or bandwidth?",
+    why: "Clarify before planning.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "uber-wait-pm-ers",
+    title: "Waiting: PM — hard dates on two Endpoint DLP ERs",
+    why: "Unlocks full-footprint purchase.",
+    people: ["Jared"],
+    account: "Uber",
+    urgency: 2,
+    kind: "Waiting"
+  },
+
+  // —— Personal / calendar ——
+  {
+    id: "passport",
+    title: "Submit passport renewal",
+    why: "Personal admin — tipped near top of Master.",
+    people: ["Jared"],
+    account: "Personal",
+    urgency: 2,
+    kind: "Personal"
+  },
+  {
+    id: "flight",
+    title: "Flight DL 3688 — Boise → Seattle 7:19–8:14p",
+    why: "Today’s Meetings sit. Hard stop for afternoon work. On personal Gmail.",
+    people: ["Jared"],
+    account: "Personal",
+    urgency: 1,
+    kind: "Calendar"
+  }
+];
+
+const MEETINGS = [
+  { id: "m-jm", start: "2026-09-25T08:00:00", end: "2026-09-25T09:00:00", title: "Coffee / JM & JD", account: "Micron", where: "Slow by Slow Coffee", attendees: ["Jonathan", "Jared"] },
+  { id: "m-pnw", start: "2026-09-25T09:00:00", end: "2026-09-25T10:00:00", title: "PNW Team Meeting", account: "Internal", attendees: [] },
+  { id: "m-closers", start: "2026-09-25T11:30:00", end: "2026-09-25T12:15:00", title: "Coffee’s For Closers — West Majors", account: "Internal", where: "Symmetry / Access Graph → Zscaler DSPM", attendees: [] },
+  { id: "m-tina", start: "2026-09-25T12:30:00", end: "2026-09-25T13:00:00", title: "1:1 Tina / Jared", account: "Internal", attendees: ["Tina", "Jared"] },
+  { id: "m-zpa", start: "2026-09-25T13:30:00", end: "2026-09-25T14:00:00", title: "Micron / ZPA App Shield — PM overview", account: "Micron", attendees: [] },
+  { id: "m-metrics", start: "2026-09-25T14:00:00", end: "2026-09-25T15:00:00", title: "Internal Micron Deployment Capability — Metrics check", account: "Micron", attendees: [] },
+  { id: "m-agentic", start: "2026-09-25T14:10:00", end: "2026-09-25T15:30:00", title: "ZS/Micron casual — Securing agentic workflows", account: "Micron", where: "Micron Onsite", attendees: [] },
+  { id: "m-flight", start: "2026-09-25T19:19:00", end: "2026-09-25T20:14:00", title: "Flight DL 3688 — Boise → Seattle", account: "Travel", attendees: ["Jared"] }
+];
+
+const U_LABEL = { 1: "Today", 2: "This week", 3: "Watch" };
+const U_CLASS = { 1: "u1", 2: "u2", 3: "u3" };
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
+}
+const sbCfg = window.MASTER_UX_SUPABASE || {};
+const supabase = (window.supabase && sbCfg.url && !String(sbCfg.url).includes("PLACEHOLDER"))
+  ? window.supabase.createClient(sbCfg.url, sbCfg.anonKey)
+  : null;
+let itemState = {};
+function getItemState(id) {
+  const s = itemState[id] || {};
+  return { done: !!s.done, note: typeof s.note === "string" ? s.note : "" };
+}
+async function persistRow(id, patch) {
+  const it = ITEMS.find(x => x.id === id);
+  const st = { ...getItemState(id), ...patch };
+  itemState[id] = st;
+  if (!supabase || !it) return;
+  const person = (it.people && it.people[0]) || "";
+  const row = {
+    id,
+    text: it.title,
+    person,
+    account: it.account,
+    urgency: it.urgency,
+    done: !!st.done,
+    note: st.note || "",
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await supabase.from("todo_items").upsert(row, { onConflict: "id" });
+  if (error) console.error("supabase upsert", error);
+}
+function setItemDone(id, done) {
+  itemState[id] = { ...getItemState(id), done: !!done };
+  persistRow(id, { done: !!done });
+}
+function setItemNote(id, note) {
+  itemState[id] = { ...getItemState(id), note: String(note || "") };
+  persistRow(id, { note: String(note || "") });
+}
+async function loadRemoteState() {
+  if (!supabase) return;
+  const { data, error } = await supabase.from("todo_items").select("id,done,note");
+  if (error) { console.error("supabase select", error); return; }
+  for (const row of (data || [])) {
+    itemState[row.id] = { done: !!row.done, note: row.note || "" };
+  }
+}
+async function seedIfEmpty() {
+  if (!supabase) return;
+  const { count, error } = await supabase.from("todo_items").select("id", { count: "exact", head: true });
+  if (error) { console.error("supabase count", error); return; }
+  if (count && count > 0) return;
+  const rows = ITEMS.map(it => ({
+    id: it.id,
+    text: it.title,
+    person: (it.people && it.people[0]) || "",
+    account: it.account,
+    urgency: it.urgency,
+    done: false,
+    note: "",
+    updated_at: new Date().toISOString()
+  }));
+  const { error: upErr } = await supabase.from("todo_items").upsert(rows, { onConflict: "id" });
+  if (upErr) console.error("supabase seed", upErr);
+}
+function syncItemDom(id) {
+  const st = getItemState(id);
+  document.querySelectorAll(`.item[data-id="${CSS.escape(id)}"]`).forEach(el => {
+    el.classList.toggle("done", st.done);
+    const cb = el.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = st.done;
+    const note = el.querySelector(".item-note");
+    if (note && document.activeElement !== note) note.value = st.note;
+  });
+}
+function itemCard(it, badgeText, badgeClass) {
+  const st = getItemState(it.id);
+  const doneCls = st.done ? " done" : "";
+  const checked = st.done ? " checked" : "";
+  return `<div class="item${doneCls}" data-id="${esc(it.id)}"><label class="check"><input type="checkbox" aria-label="Mark done"${checked}/></label><div class="badge ${badgeClass || ""}">${esc(badgeText)}</div><div><strong>${esc(it.title)}</strong><div class="why">${esc(it.why)}</div><input class="item-note" type="text" placeholder="Add a note…" value="${esc(st.note)}" aria-label="Note"/></div></div>`;
+}
+function groupHtml(title, meta, body, extraClass) {
+  const cls = extraClass ? `group ${extraClass}` : "group";
+  return `<section class="${cls}"><div class="group-head"><h2 class="group-title">${esc(title)}</h2><div class="group-meta">${esc(meta)}</div></div>${body}</section>`;
+}
+function renderPerson() {
+  const map = new Map();
+  for (const it of ITEMS) for (const p of it.people) {
+    if (!map.has(p)) map.set(p, []);
+    map.get(p).push(it);
+  }
+  const order = ["Jonathan", "Jackie", "Paul Saline", "Ray Flores", "Adrian", "Jared"];
+  const keys = [...map.keys()].sort((a, b) => {
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
+  });
+  return keys.map(p => {
+    const list = map.get(p).slice().sort((a, b) => a.urgency - b.urgency || a.title.localeCompare(b.title));
+    return groupHtml(p, `${list.length} item${list.length === 1 ? "" : "s"}`, list.map(it => itemCard(it, U_LABEL[it.urgency], U_CLASS[it.urgency])).join(""));
+  }).join("");
+}
+function renderAccount() {
+  const map = new Map();
+  for (const it of ITEMS) {
+    const accounts = [it.account, ...(it.accountsExtra || [])];
+    for (const a of accounts) {
+      if (!map.has(a)) map.set(a, []);
+      if (!map.get(a).includes(it)) map.get(a).push(it);
+    }
+  }
+  const order = ["Micron", "Costco", "Uber", "Personal"];
+  const keys = [...map.keys()].sort((a, b) => {
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  return keys.map(a => {
+    const list = map.get(a).slice().sort((x, y) => x.urgency - y.urgency || x.title.localeCompare(y.title));
+    return groupHtml(a, `${list.length} item${list.length === 1 ? "" : "s"}`, list.map(it => itemCard(it, U_LABEL[it.urgency], U_CLASS[it.urgency])).join(""));
+  }).join("");
+}
+function renderUrgency() {
+  const buckets = { 1: [], 2: [], 3: [] };
+  for (const it of ITEMS) buckets[it.urgency].push(it);
+  return [1, 2, 3].map(u => {
+    const list = buckets[u];
+    if (!list.length) return "";
+    const titles = { 1: "Today", 2: "This week", 3: "Watch" };
+    return groupHtml(titles[u], `${list.length} item${list.length === 1 ? "" : "s"}`, list.map(it => itemCard(it, it.account, U_CLASS[u])).join(""), `group-urgency u${u}`);
+  }).join("");
+}
+function parseLocal(iso) {
+  const [d, t] = iso.split("T");
+  const [y, mo, da] = d.split("-").map(Number);
+  const [h, mi, s] = t.split(":").map(Number);
+  return new Date(y, mo - 1, da, h, mi, s || 0);
+}
+function fmtTimeRange(m) {
+  const opts = { hour: "numeric", minute: "2-digit" };
+  return `${parseLocal(m.start).toLocaleTimeString("en-US", opts)} – ${parseLocal(m.end).toLocaleTimeString("en-US", opts)}`;
+}
+function meetMeta(m) {
+  const bits = [];
+  if (m.account) bits.push(m.account);
+  if (m.where) bits.push(m.where);
+  if (m.attendees && m.attendees.length) bits.push(m.attendees.join(", "));
+  return bits.join(" · ");
+}
+function countdownLabel(start, end, now) {
+  if (now >= start && now < end) return "In progress";
+  const ms = start - now;
+  if (ms <= 0) return "";
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `in ${mins} min`;
+  const h = Math.floor(mins / 60), r = mins % 60;
+  return r ? `in ${h}h ${r}m` : `in ${h}h`;
+}
+function renderMeetings() {
+  const body = document.getElementById("meet-rail-body");
+  document.getElementById("meet-date").textContent = "Fri · Sep 25, 2026";
+  if (!MEETINGS.length) {
+    body.innerHTML = `<div class="meet-empty">No meetings today</div>`;
+    return;
+  }
+  const now = new Date();
+  const sorted = MEETINGS.slice().sort((a, b) => parseLocal(a.start) - parseLocal(b.start));
+  let focus = null;
+  for (const m of sorted) {
+    if (now < parseLocal(m.end)) { focus = m; break; }
+  }
+  let html = "";
+  if (focus) {
+    const s = parseLocal(focus.start), e = parseLocal(focus.end);
+    const isNow = now >= s && now < e;
+    const cd = countdownLabel(s, e, now);
+    html += `<div class="meet-next"><div class="pill${isNow ? " now" : ""}">${isNow ? "Now" : "Next"}</div><div class="time">${esc(fmtTimeRange(focus))}</div><div class="title">${esc(focus.title)}</div><div class="meta">${esc(meetMeta(focus))}</div>${cd ? `<div class="countdown">${esc(cd)}</div>` : ""}</div>`;
+  }
+  const rest = sorted.filter(m => !focus || m.id !== focus.id);
+  if (rest.length) {
+    html += `<div class="meet-list"><div class="label">Also today</div>`;
+    for (const m of rest) {
+      const past = parseLocal(m.end) <= now;
+      html += `<div class="meet-row${past ? " past" : ""}"><div class="time">${esc(fmtTimeRange(m))}</div><div class="title">${esc(m.title)}</div><div class="meta">${esc(meetMeta(m))}</div></div>`;
+    }
+    html += `</div>`;
+  } else if (!focus) {
+    html = `<div class="meet-empty">No meetings today</div>`;
+  }
+  body.innerHTML = html;
+}
+
+// Theme: default light; remember last choice
+const THEME_KEY = "master-ux-theme";
+function applyTheme(theme) {
+  const t = theme === "dark" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+  const btn = document.getElementById("theme-btn");
+  btn.textContent = t === "light" ? "Dark" : "Light";
+  btn.setAttribute("aria-label", t === "light" ? "Switch to dark theme" : "Switch to light theme");
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+}
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+  applyTheme(saved === "dark" || saved === "light" ? saved : "light");
+})();
+document.getElementById("theme-btn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  applyTheme(cur === "light" ? "dark" : "light");
+});
+
+async function boot() {
+  await seedIfEmpty();
+  await loadRemoteState();
+  document.getElementById("view-person").innerHTML = renderPerson();
+  document.getElementById("view-account").innerHTML = renderAccount();
+  document.getElementById("view-urgency").innerHTML = renderUrgency();
+  renderMeetings();
+  setInterval(renderMeetings, 60000);
+}
+boot();
+
+const mainEl = document.querySelector(".main");
+mainEl.addEventListener("change", (e) => {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement) || input.type !== "checkbox") return;
+  const item = input.closest(".item");
+  if (!item || !item.dataset.id) return;
+  setItemDone(item.dataset.id, input.checked);
+  syncItemDom(item.dataset.id);
+});
+mainEl.addEventListener("focusout", (e) => {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement) || !input.classList.contains("item-note")) return;
+  const item = input.closest(".item");
+  if (!item || !item.dataset.id) return;
+  setItemNote(item.dataset.id, input.value.trim());
+  syncItemDom(item.dataset.id);
+});
+
+const panels = {
+  person: document.getElementById("view-person"),
+  account: document.getElementById("view-account"),
+  urgency: document.getElementById("view-urgency")
+};
+document.querySelectorAll(".toggles button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const view = btn.dataset.view;
+    document.querySelectorAll(".toggles button").forEach(b => {
+      const on = b === btn;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    Object.entries(panels).forEach(([k, el]) => {
+      const on = k === view;
+      el.classList.toggle("active", on);
+      if (on) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+  });
+});
+</script>
+</body>
+</html>
