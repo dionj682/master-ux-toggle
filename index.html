@@ -260,11 +260,11 @@ window.MASTER_UX_SUPABASE = {
 /** urgency: 1 = today/hot, 2 = this week, 3 = watch/waiting */
 const ITEMS = [
   {
-    id: "nick-micron-jackie-procurement",
-    title: "Reply to Jackie (Micron procurement) after Nick Newby review",
-    why: "Corporate Outlook email — Oct 1 paper clock.",
+    id: "passport",
+    title: "URGENT — Tomorrow (Thu 10/1): get passport photo taken at FedEx, then finish the passport renewal application online",
+    why: "Must be done tomorrow because of lead time before the Presidents Club trip.",
     people: ["Jared"],
-    account: "Micron",
+    account: "Personal",
     urgency: 1,
     kind: "Do now"
   },
@@ -676,6 +676,15 @@ const ITEMS = [
     kind: "Waiting"
   },
   {
+    id: "micron-wait-dealdesk-redate-1015",
+    title: "Waiting: Zscaler Deal Desk — update the quote expiration date and start date to October 15",
+    why: "Order slipping past end of September — so Micron has time to cut the PO and Zscaler can process it before the quote expires. Terms agreed with Jackie (Jared replied 9/30).",
+    people: ["Deal Desk"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Waiting"
+  },
+  {
     id: "micron-wait-melanie",
     title: "Waiting: Melanie EA — half-day exec briefing availability",
     why: "Hanan / Blake / Nick / Jonathan / Kirkman.",
@@ -934,18 +943,9 @@ const ITEMS = [
 
   // —— Personal / calendar ——
   {
-    id: "pclub-travel",
-    title: "Submit Presidents Club travel — Kayla and Jared going; kids stay home. Need to pick/schedule flights.",
-    why: "Registration already done; this is the travel submission.",
-    people: ["Jared"],
-    account: "Personal",
-    urgency: 2,
-    kind: "Personal"
-  },
-  {
-    id: "passport",
-    title: "Submit passport renewal",
-    why: "Personal admin — tipped near top of Master.",
+    id: "pclub-passport-expiration",
+    title: "Update passport expiration date on the Presidents Club travel request once the new passport arrives",
+    why: "Presidents Club flights are booked by Jared through the travel request (9/30). Depends on the passport renewal.",
     people: ["Jared"],
     account: "Personal",
     urgency: 2,
