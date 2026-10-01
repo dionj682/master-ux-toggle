@@ -269,6 +269,15 @@ const ITEMS = [
     kind: "Do now"
   },
   {
+    id: "micron-wwt-prebook-email",
+    title: "Micron / WWT pre-book email — “let me ghostwrite it, I’ll shoot it over to you, Jonathan” → Jonathan connects with Jackie for a go / no go",
+    why: "From 9/30 Nick Ward + Sam Curry call — WWT pre-books the order so the start date holds while Ts&Cs finish. Sent / go-no-go outcome: confirm with Jared.",
+    people: ["Jared", "Jonathan"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Do now"
+  },
+  {
     id: "sign-comp-plan",
     title: "Sign comp plan",
     why: "Personal/admin — complete the comp plan signature.",
@@ -282,15 +291,6 @@ const ITEMS = [
     title: "Finish Micron flex agreement strategy doc and share with Jonathan",
     why: "Micron — finish the flex agreement strategy and share it with Jonathan.",
     people: ["Jared", "Jonathan"],
-    account: "Micron",
-    urgency: 1,
-    kind: "Do now"
-  },
-  {
-    id: "jon-risk-mgmt-sam-nick",
-    title: "Check with Jonathan on the risk management scheduling for the meeting with Sam Curry and Nick Ward",
-    why: "Pin to top of Jonathan list — confirm risk-mgmt scheduling for Sam Curry + Nick Ward meeting.",
-    people: ["Jonathan"],
     account: "Micron",
     urgency: 1,
     kind: "Do now"
@@ -312,6 +312,15 @@ const ITEMS = [
     account: "Micron",
     accountsExtra: ["Uber"],
     urgency: 1,
+    kind: "Do now"
+  },
+  {
+    id: "micron-endpoint-ai-migration-commit",
+    title: "Micron / Endpoint AI — connect with the product/engineering team to ensure their commitment to supporting the migration to the consolidated Endpoint AI Security agent",
+    why: "From 9/21 QBR planning (Zoom next step for JD). 50 → 250 agents. Owner (JD vs SE): confirm with Jared.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
     kind: "Do now"
   },
   {
@@ -339,6 +348,78 @@ const ITEMS = [
     people: ["Jared"],
     account: "Micron",
     urgency: 1,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-micron-dealdesk-legal-redlines",
+    title: "Micron / Waiting Deal Desk + Legal — AI quote redlines (“I’ll keep chasing the red lines and let you guys know as soon as I hear something”)",
+    why: "From 9/30 call — confirm back to Nick / Jonathan when Ts&Cs land.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 1,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-nick-ward-hanan-topics",
+    title: "Micron / Waiting Nick Ward — “shiny object” agenda topics for Hanan → JD figures out the recipe (who) and brings it back for Nick’s sniff test",
+    why: "From 9/30 call — Hanan routed exec ask to Nick; Hanan session unlikely this QBR.",
+    people: ["Nick Ward"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-nick-ward-address-coffee",
+    title: "Micron / Waiting Nick Ward — address for coffee (“Shoot me your address, I’ll send it to you”)",
+    why: "From 9/30 call — Nick traveling to Georgia from 10/1.",
+    people: ["Nick Ward"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-ran-tina-appshield-call",
+    title: "Micron / Waiting Ran + Tina — set up 30-min AppShield call with Shekhar + Megha, 1–2 weeks out; Jonathan and JD optional",
+    why: "From 9/25 AppShield PM overview.",
+    people: ["Ran"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-megha-appshield-docs",
+    title: "Micron / Waiting Megha — early AppShield documentation to Shekhar",
+    why: "From 9/25 AppShield PM overview.",
+    people: ["Megha"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-ran-deception-oct16",
+    title: "Micron / Waiting Ran — Deception rollout delivered by Oct 16 (“stay close to that… so it gets delivered on time”)",
+    why: "From 9/25 — Micron commitment due Oct 16.",
+    people: ["Ran"],
+    account: "Micron",
+    urgency: 2,
+    kind: "Waiting"
+  },
+  {
+    id: "trigger-appshield-after-deception",
+    title: "Micron / AppShield — TRIGGER: after Deception delivers (Oct 16) — “once we’re done with deception, then we’ll pilot this out”",
+    why: "From 9/25 AppShield PM overview.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 3,
+    kind: "Waiting"
+  },
+  {
+    id: "wait-risk360-prg-owner",
+    title: "Micron / Risk360 — submit PRG for activation (purchased, not activated) — owner: confirm with Jared",
+    why: "From 9/21 QBR planning.",
+    people: ["Jared"],
+    account: "Micron",
+    urgency: 2,
     kind: "Waiting"
   },
   {
@@ -427,15 +508,6 @@ const ITEMS = [
     id: "micron-ai-broker-notes",
     title: "Delegate / SE — AI Broker meeting notes to Jonathan (Harlow pushback)",
     why: "Get notes to Jonathan.",
-    people: ["Jonathan"],
-    account: "Micron",
-    urgency: 2,
-    kind: "Delegate"
-  },
-  {
-    id: "micron-app-shield-pm",
-    title: "Delegate / overlays — ZPA App Shield PM meeting for Jonathan/Micron",
-    why: "Overlay / PM path.",
     people: ["Jonathan"],
     account: "Micron",
     urgency: 2,
